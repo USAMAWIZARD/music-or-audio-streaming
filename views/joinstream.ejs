@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="socket.io/socket.io.js"> </script>
+    <script >var socket = io.connect() </script>
+
+
+</head>
+
+<body>
+    <div id="streamid"></div>
+    <button onclick="socket.emit('createroom')  ">get stream id</button>
+    <input type="file"> 
+    <button onclick="startstreaming()">start streaming</button><br><br><br>
+    <hr><br><br>
+    enter stream id if you want to listen to a stream
+    <input type="text" id="streamid">
+    <button onclick="joinroom()">joinstream</button>
+
+    <script>
+
+        function joinroom() {
+            if (document.getElementById("streamid").value != "")
+                socket.emit("joinroom", document.getElementById("streamid").value)
+        }
+        socket.on("stream", (streamblob) => {
+
+        })
+        async function startstreaming() {
+
+        }
+        socket.on("streamid", (streamid) => {
+            document.getElementById("streamid").innerHTML =" Your stream id "+ streamid
+        })
+    </script>
+
+
+
+</body>
+
+</html>
