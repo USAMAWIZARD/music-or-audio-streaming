@@ -6,36 +6,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <script src="socket.io/socket.io.js"> </script>
-    <script >var socket = io.connect() </script>
+    <script>var socket = io.connect() </script>
 
 
 </head>
 
 <body>
     <div id="streamid"></div>
-    <button onclick="socket.emit('createroom')  ">get stream id</button>
-    <input type="file"> 
+    <input type="text" placeholder="room admin name" id="adminname">
+    <button onclick="socket.emit('createroom',document.getElementById('roomadmin'.value))">get stream id</button>
+    <input type="file" id="streamingaudio">
     <button onclick="startstreaming()">start streaming</button><br><br><br>
     <hr><br><br>
+
+    <table id="roomtable" border="2px">
+    <thead>
+        <th>
+        username
+        </th>
+        
+        <th>
+            datarecived
+        </th>
+    <thead>
+    </table>
+
     enter stream id if you want to listen to a stream
-    <input type="text" id="streamid">
-    <button onclick="joinroom()">joinstream</button>
+    <input type="text" placeholder="username" id="username">
+    <input type="text" id="remotestreamid">
+    <button onclick="joinroom()">joinstream</button><br><br>
+    <audio controls="controls" type="audio/mp3" id="musicplayer" />
 
     <script>
-
+        var mystreamid
         function joinroom() {
-            if (document.getElementById("streamid").value != "")
-                socket.emit("joinroom", document.getElementById("streamid").value)
+            if (document.getElementById("remotestreamid").value != "")
+                socket.emit("joinroom", {"username":document.getElementById("username").value,"remotestreamid":document.getElementById("remotestreamid").value})
         }
-        socket.on("stream", (streamblob) => {
-
+        socket.on("onstream", (streamblob) => {
+            console.log(streamblob)
+            document.getElementById("musicplayer").src += streamblob
+            socket.emit("acnoledgement")
         })
-        async function startstreaming() {
+        var reader = new FileReader();
 
+        reader.onloadend = async function () {
+            numberofchunk = 4
+            var base64data = reader.result;
+            console.log(base64data.length);
+            for (i = 0; i < base64data.length; i = i + Math.floor(base64data.length / numberofchunk)) {
+                end = i + Math.floor(base64data.length / numberofchunk)
+                if (end > base64data.length)
+                    end = base64data.length
+                socket.emit("musicstreamer", base64data.slice(i, end))
+                  
+                document.getElementById("musicplayer").src += base64data.slice(i, end)
+                console.log(i, end)
+            }
+            document.getElementById("musicplayer").play()
+
+        }
+        var musicblob
+        async function startstreaming() {
+            if (mystreamid == undefined) {
+                alert("you dont have a stream id please click on get streamid to start streaming")
+                return
+            }
+            file = document.getElementById("streamingaudio").files[0]
+            reader.readAsDataURL(file);
         }
         socket.on("streamid", (streamid) => {
-            document.getElementById("streamid").innerHTML =" Your stream id "+ streamid
+            document.getElementById("streamid").innerHTML = " Your stream id " + streamid
+            mystreamid = streamid
         })
+        var debug=1
+        socket.on("onuserjoin",(userdetails)=>{
+            debug=userdetails
+            console.log(userdetails)
+            userdetails.forEach(userdetail => {
+                document.getElementById("roomtable").innerHTML+="<tbody><tr><td>"+userdetail["username"]+"</td><td>"+userdetail["datarecived"]+"</td></tr></tbody>"
+            });
+        })
+        socket.on("alreadyinroom",(userdetails)=>{
+            alert("you are already added in the room")
+        })
+        
     </script>
 
 
