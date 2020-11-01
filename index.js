@@ -28,10 +28,10 @@ io.on("connection", (socket) => {
     io.in(userstream["remotestreamid"]).clients((err , clients) => {
  
         clients.forEach(client => {
-        clientdata.push({"username": io.nsps['/'].connected[client].nickname,"datarecived":aknoledgement[socket.id]})
+        clientdata.push({"username": io.nsps['/'].connected[client].nickname,"datarecived":aknoledgement[client]})
         });
         console.log(clientdata)
-            socket.emit("onuserjoin",clientdata)
+            socket.emit("onuserjoin",clientdata)    
 
     });
 
@@ -44,6 +44,8 @@ io.on("connection", (socket) => {
   socket.on("createroom", (roomadmin) => {
     roomid = Math.floor(Math.random() * (100000 - 10000)) + 10000;
     roomowner[socket.id] = roomid;
+    aknoledgement[socket.id]="Admin"
+    console.log(roomadmin)
     socket.nickname=roomadmin
     socket.join(roomid);
     socket.emit("streamid", roomid);
@@ -57,22 +59,33 @@ io.on("connection", (socket) => {
 
   });
   socket.on("acnoledgement",()=>{
+    clientacc=1
     var roomid = Object.keys(io.sockets.adapter.sids[socket.id]).filter(item => item!=socket.id);
     io.in(roomid).clients((err , clients) => {
       aknoledgement[socket.id]++
-
+      
       clients.forEach(client => {
-        if(aknoledgement[client]==4){
+        if(aknoledgement[client]==2){
           console.log("all pak recived")
+          clientacc++
+          console.log(clientacc)
         }
-  
+        
       });
-      io.sockets.in(roomid).emit('play');
+      if(clientacc==clients.length){
+        console.log("everyone has recived all the packets")
+        mytime=Date.now()
+        io.sockets.in(roomid).emit('play',mytime);
+      }
+
+      
 
   });
+
+  })
+  
   socket.on("disconnect",()=>{
     delete aknoledgement[socket.id]
-  })
   })
 
 });

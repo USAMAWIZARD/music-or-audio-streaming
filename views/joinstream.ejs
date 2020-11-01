@@ -14,7 +14,7 @@
 <body>
     <div id="streamid"></div>
     <input type="text" placeholder="room admin name" id="adminname">
-    <button onclick="socket.emit('createroom',document.getElementById('roomadmin'.value))">get stream id</button>
+    <button onclick="socket.emit('createroom',document.getElementById('adminname').value)">get stream id</button>
     <input type="file" id="streamingaudio">
     <button onclick="startstreaming()">start streaming</button><br><br><br>
     <hr><br><br>
@@ -59,9 +59,10 @@
                 if (end > base64data.length)
                     end = base64data.length
                 socket.emit("musicstreamer", base64data.slice(i, end))
-                  
+                console.log('111')
                 document.getElementById("musicplayer").src += base64data.slice(i, end)
                 console.log(i, end)
+                
             }
             document.getElementById("musicplayer").play()
 
@@ -90,7 +91,16 @@
         socket.on("alreadyinroom",(userdetails)=>{
             alert("you are already added in the room")
         })
-        
+        socket.on("packetrecived",user=>{
+
+        })
+        socket.on("play",(timetoplay)=>{
+            console.log(timetoplay,"tune")
+           // setTimeout(5000,()=>{ document.getElementById("musicplayer").play() })
+           console.log(timetoplay-Date.now()+7000)
+           setTimeout(()=>{ document.getElementById("musicplayer").play() },(timetoplay-Date.now())+7000)
+           console.log(Date.now())
+        })
     </script>
 
 
